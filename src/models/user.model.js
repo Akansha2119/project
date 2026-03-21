@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
+
 const { Schema } = mongoose;
+
 const userSchema = new Schema(
   {
     username: {
@@ -19,18 +21,19 @@ const userSchema = new Schema(
       lowercase: true,
       trim: true,
     },
-    fullname: {
+    fullName: {
       type: String,
       required: true,
       trim: true,
       index: true,
     },
     avatar: {
-      type: String, //cloudinary url
+      type: String, // cloudinary url
       required: true,
     },
     coverImage: {
-      type: String, //cloudinary url
+      type: String, // cloudinary url
+      default: "",
     },
     watchHistory: [
       {
@@ -48,21 +51,27 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+
+// ✅ FIXED PRE HOOK (clean + no next needed)
+userSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+
   this.password = await bcrypt.hash(this.password, 10);
-  next();
 });
+
+// ✅ PASSWORD CHECK METHOD
 userSchema.methods.isPasswordCorrect = async function (password) {
   return await bcrypt.compare(password, this.password);
 };
+
+// ✅ ACCESS TOKEN GENERATION (FIXED TYPO)
 userSchema.methods.generateAccessToken = function () {
   return jwt.sign(
     {
       _id: this._id,
       email: this.email,
       username: this.username,
-      fullname: this.fullname,
+      fullName: this.fullName, // ✅ fixed
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
@@ -70,6 +79,8 @@ userSchema.methods.generateAccessToken = function () {
     }
   );
 };
+
+// ✅ REFRESH TOKEN GENERATION
 userSchema.methods.generateRefreshToken = function () {
   return jwt.sign(
     {
@@ -81,4 +92,5 @@ userSchema.methods.generateRefreshToken = function () {
     }
   );
 };
+
 export const User = mongoose.model("User", userSchema);
