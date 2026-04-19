@@ -27,7 +27,6 @@ const generateAccessAndRefreshTokens = async (userId) => {
     throw new APIError(500, "Something went wrong while generating tokens");
   }
 };
-
 // ================== REGISTER USER ==================
 const registerUser = asyncHandler(async (req, res) => {
   const { fullName, email, username, password } = req.body;
@@ -94,7 +93,6 @@ const registerUser = asyncHandler(async (req, res) => {
     .status(201)
     .json(new APIResponse(200, createdUser, "User registered successfully"));
 });
-
 // ================== LOGIN USER ==================
 const loginUser = asyncHandler(async (req, res) => {
   const { email, username, password } = req.body;
@@ -218,5 +216,8 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   } catch (error) {
     throw new APIError(401, error?.message || "Invalid erfresh token");
   }
+});
+const changeCurrentPassword = asyncHandler(async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
 });
 export { registerUser, loginUser, logoutUser, refreshAccessToken };
